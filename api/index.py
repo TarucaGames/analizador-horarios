@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler
 from os import curdir
 from os.path import join as pjoin
 import cgi
+import json
 
 from api.analyzer import FileAnalyzer
 
@@ -11,7 +12,8 @@ class handler(BaseHTTPRequestHandler):
 
     def respond(self, response, status=200):
         self.send_response(status)
-        self.send_header("Content-type", "text/html")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Content-type", "application/json")
         self.send_header("Content-length", len(response))
         self.end_headers()
         self.wfile.write(response)
@@ -21,7 +23,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/plain")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
-        self.wfile.write("Hello, world!".encode("utf-8"))
+        self.wfile.write('{"data": "Hello, world!"}'.encode("utf-8"))
         return
 
     def do_POST(self):
@@ -39,7 +41,9 @@ class handler(BaseHTTPRequestHandler):
         analyzer = FileAnalyzer()
         response = analyzer.contar_horas_trabajo("/tmp/%s" % filename)
         print("## larespuestaes: " + " ".join(response))
-        self.respond("\n".join(response).encode())
+        response_data = {"data": "\n".join(response)}
+        response_string = json.dumps(response_data)
+        self.respond(response_string.encode())
         # self.respond(("uploaded %s, thanks" % filename).encode())
 
 
