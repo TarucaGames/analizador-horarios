@@ -2,6 +2,8 @@ import openpyxl
 
 from datetime import date, datetime, time, timedelta
 
+from api.analyzer import FileAnalyzer
+
 semana_diccionario = {
     "lunes": {"inicio": 3, "fin": 7},
     "martes": {"inicio": 8, "fin": 12},
@@ -127,4 +129,6 @@ def get_proxima_entrada(salida_dia_anterior):
 
 # Reemplaza 'tu_archivo.xlsx' con el nombre real de tu archivo Excel
 archivo_excel = "CARLA_MAL.xlsx"
-contar_horas_trabajo(archivo_excel)
+# contar_horas_trabajo(archivo_excel)
+analyzer = FileAnalyzer()
+analyzer.contar_horas_trabajo(archivo_excel)
