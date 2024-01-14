@@ -1,0 +1,15 @@
+{
+  "name": "horarios",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:TarucaGames/analizador-horarios.git",
+  "author": "TarucaGames <taruca.games@gmal.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "devDependencies": {
+    "vercel": "^33.1.0"
+  }
+}
