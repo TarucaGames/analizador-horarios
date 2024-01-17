@@ -14,11 +14,17 @@ class FileAnalyzer:
         "domingo": {"inicio": 33, "fin": 37},
     }
 
-    def contar_horas_trabajo(self, archivo_excel):
+    def contar_horas_trabajo(self, path, archivo_excel):
         respuesta = []
+        response = {
+            "id": None,
+            "name": archivo_excel,
+            "weeks": [],
+            "hasErrors": False,
+        }
         # self.obj_to_time(hour=15, minutes=59)
         # Cargar el libro de trabajo
-        libro_trabajo = openpyxl.load_workbook(archivo_excel)
+        libro_trabajo = openpyxl.load_workbook(path + archivo_excel)
 
         # Obtener la lista de nombres de las hojas
         nombres_hojas = libro_trabajo.sheetnames
@@ -31,6 +37,18 @@ class FileAnalyzer:
         contador_dias_trabajo = 0
 
         for index in range(cantidad_hojas):
+            week = {
+                "id": None,
+                "name": "",
+                "days": [],
+                "totalHours": 0,
+                "workHours": 0,
+                "breakHours": 0,
+                "nightHours": 0,
+                "errors": [],
+                "hasErrors": False,
+            }
+            week["name"] = nombres_hojas[index].upper()
             # Seleccionar la hoja de trabajo
             hoja_trabajo = libro_trabajo.worksheets[index]
 
@@ -41,6 +59,14 @@ class FileAnalyzer:
             # Inicializar el contador de horas de trabajo
             # Recorrer el diccionario y llamar a la función para cada día
             for dia, info in self.semana_diccionario.items():
+                day = {
+                    "id": None,
+                    "name": dia.upper(),
+                    "start": None,
+                    "end": None,
+                    "isFree": False,
+                    "errors": [],
+                }
                 (
                     horas_trabajo,
                     horas_nocturnas,
@@ -50,10 +76,10 @@ class FileAnalyzer:
                 ) = self.contar_horas_diarias(hoja_trabajo, info["inicio"], info["fin"])
                 if salida is not None and entrada is not None:
                     if contador_dias_descanso == 1:
-                        print("##! -> No se respetan las 48hs de días libres")
-                        respuesta.append(
-                            "##! -> No se respetan las 48hs de días libres"
-                        )
+                        err = "No se respetan las 48hs de días libres"
+                        print(f"##! -> {err}")
+                        respuesta.append(f"##! -> {err}")
+                        day["errors"].append(err)
                     contador_dias_trabajo += 1
                     time_entrada = self.obj_to_time(
                         entrada["columna"] + 4, ((entrada["fila"] - 3) % 5) * 15
@@ -71,21 +97,26 @@ class FileAnalyzer:
                         + f" - Entrada: {self.to_string(time_entrada)}"
                         + f" - Salida: {self.to_string(time_salida)}"
                     )
+                    day["start"] = self.to_string(time_entrada)
+                    day["end"] = self.to_string(time_salida)
                     if salida_dia_anterior is not None:
                         siguiente_entrada = self.get_proxima_entrada(
                             salida_dia_anterior
                         )
                         if siguiente_entrada.time() > time_entrada.time():
-                            print("##! -> No se respetan las horas de descanso")
-                            respuesta.append(
-                                "##! -> No se respetan las horas de descanso"
-                            )
+                            err = "No se respetan las horas de descanso"
+                            print(f"##! -> {err}")
+                            respuesta.append(f"##! -> {err}")
+                            day["errors"].append(err)
                     salida_dia_anterior = time_salida
                     if contador_dias_trabajo > 7:
-                        print("##! -> Más de 7 días de trabajo seguidos")
-                        respuesta.append("##! -> Más de 7 días de trabajo seguidos")
+                        err = "Más de 7 días de trabajo seguidos"
+                        print(f"##! -> {err}")
+                        respuesta.append(f"##! -> {err}")
+                        day["errors"].append(err)
                     contador_dias_descanso = 0
                 else:
+                    day["isFree"] = True
                     contador_dias_trabajo = 0
                     contador_dias_descanso += 1
                     salida_dia_anterior = None
@@ -93,6 +124,9 @@ class FileAnalyzer:
                 total_horas_trabajo += horas_trabajo
                 total_horas_nocturnas += horas_nocturnas
                 total_horas_descanso += horas_descanso
+                if day["errors"]:
+                    week["hasErrors"] = True
+                week["days"].append(day)
 
             # Cerrar el libro de trabajo
             libro_trabajo.close()
@@ -106,7 +140,14 @@ class FileAnalyzer:
             )
             print("=======")
             respuesta.append("=======")
-        return respuesta
+            week["breakHours"] = total_horas_descanso
+            week["workHours"] = total_horas_trabajo
+            week["nightHours"] = total_horas_nocturnas
+            week["totalHours"] = total_horas_trabajo + total_horas_descanso
+            if week["hasErrors"]:
+                response["hasErrors"] = True
+            response["weeks"].append(week)
+        return respuesta, response
 
     def contar_horas_diarias(self, hoja_trabajo, inicio, fin):
         # Inicializar el contador de horas de trabajo

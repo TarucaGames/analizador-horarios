@@ -131,4 +131,4 @@ def get_proxima_entrada(salida_dia_anterior):
 archivo_excel = "CARLA_MAL.xlsx"
 # contar_horas_trabajo(archivo_excel)
 analyzer = FileAnalyzer()
-analyzer.contar_horas_trabajo(archivo_excel)
+analyzer.contar_horas_trabajo("", archivo_excel)

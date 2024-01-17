@@ -39,34 +39,16 @@ class handler(BaseHTTPRequestHandler):
         data = form["file"].file.read()
         open("/tmp/%s" % filename, "wb").write(data)
         analyzer = FileAnalyzer()
-        response = analyzer.contar_horas_trabajo("/tmp/%s" % filename)
-        print("## larespuestaes: " + " ".join(response))
-        response_data = {"data": "\n".join(response)}
-        response_string = json.dumps(response_data)
-        self.respond(response_string.encode())
+        try:
+            respuesta, response = analyzer.contar_horas_trabajo("/tmp/", filename)
+            errors = []
+            if response["hasErrors"]:
+                errors.append("Se encontró algún error en los horarios")
+            response_data = {"data": response, "errors": errors}
+            response_string = json.dumps(response_data)
+            self.respond(response_string.encode())
+        except Exception as errorMsg:
+            response_data = {"data": None, "errors": [errorMsg]}
+            response_string = json.dumps(response_data)
+            self.respond(response_string.encode())
         # self.respond(("uploaded %s, thanks" % filename).encode())
-
-
-""" 
-    def do_POST(self):
-        if self.path == "/store.json":
-            length = self.headers["content-length"]
-            data = self.rfile.read(int(length))
-
-            with open(self.store_path, "w") as fh:
-                fh.write(data.decode())
-
-            self.send_response(200) """
-
-
-""" 
-    def do_POST(self):
-        content_length = int(self.headers["Content-Length"])
-        body = self.rfile.read(content_length)
-        self.send_response(200)
-        self.end_headers()
-        response = BytesIO()
-        response.write(b"This is a POST request \n")
-        response.write(b"Received: ")
-        response.write(body)
-        self.wfile.write(response.getvalue()) """
