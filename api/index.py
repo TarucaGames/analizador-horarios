@@ -13,10 +13,16 @@ class handler(BaseHTTPRequestHandler):
     def respond(self, response, status=200):
         self.send_response(status)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Content-type", "application/json")
-        self.send_header("Content-length", len(response))
+        self.send_header("Access-Control-Allow-Methods", "*")
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", len(response))
         self.end_headers()
         self.wfile.write(response)
+
+    def do_OPTIONS(self):
+        response_data = {"data": "ok"}
+        response_string = json.dumps(response_data)
+        self.respond(response_string.encode())
 
     def do_GET(self):
         self.send_response(200)
