@@ -1,17 +1,17 @@
 import openpyxl
-
+import locale
 from datetime import date, datetime, time, timedelta
 
 
 class FileAnalyzer:
     semana_diccionario = {
-        "lunes": {"inicio": 3, "fin": 7},
-        "martes": {"inicio": 8, "fin": 12},
-        "miércoles": {"inicio": 13, "fin": 17},
-        "jueves": {"inicio": 18, "fin": 22},
-        "viernes": {"inicio": 23, "fin": 27},
-        "sábado": {"inicio": 28, "fin": 32},
-        "domingo": {"inicio": 33, "fin": 37},
+        "lunes": {"index": 0, "inicio": 3, "fin": 7},
+        "martes": {"index": 1, "inicio": 8, "fin": 12},
+        "miércoles": {"index": 2, "inicio": 13, "fin": 17},
+        "jueves": {"index": 3, "inicio": 18, "fin": 22},
+        "viernes": {"index": 4, "inicio": 23, "fin": 27},
+        "sábado": {"index": 5, "inicio": 28, "fin": 32},
+        "domingo": {"index": 6, "inicio": 33, "fin": 37},
     }
 
     def contar_horas_trabajo(self, path, archivo_excel):
@@ -37,6 +37,8 @@ class FileAnalyzer:
         contador_dias_trabajo = 0
 
         for index in range(cantidad_hojas):
+            week_number = int(nombres_hojas[index].split()[1])
+            week_dates = self.get_dates_of_week(week_number)
             week = {
                 "id": None,
                 "name": "",
@@ -61,6 +63,7 @@ class FileAnalyzer:
             for dia, info in self.semana_diccionario.items():
                 day = {
                     "id": None,
+                    "date": week_dates[info["index"]],
                     "name": dia.upper(),
                     "start": None,
                     "end": None,
@@ -187,3 +190,18 @@ class FileAnalyzer:
 
     def analyze(self):
         return "a"
+
+    def get_dates_of_week(self, week_number):
+        # Set the locale to Spanish
+        locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+
+        # Determine the first day of the week
+        first_day = datetime.strptime(f"2024-W{week_number}-1", "%Y-W%W-%w").date()
+
+        # Calculate the dates for the entire week
+        dates_of_week = [first_day + timedelta(days=i) for i in range(7)]
+
+        # Format dates in Spanish
+        formatted_dates = [date.strftime("%d-%m") for date in dates_of_week]
+
+        return formatted_dates
