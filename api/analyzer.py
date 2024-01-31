@@ -76,6 +76,7 @@ class FileAnalyzer:
                     horas_descanso,
                     entrada,
                     salida,
+                    es_feriado,
                 ) = self.contar_horas_diarias(hoja_trabajo, info["inicio"], info["fin"])
                 if salida is not None and entrada is not None:
                     if contador_dias_descanso == 1:
@@ -118,8 +119,10 @@ class FileAnalyzer:
                         respuesta.append(f"##! -> {err}")
                         day["errors"].append(err)
                     contador_dias_descanso = 0
+                    day["type"] = "Holiday" if es_feriado else "Working"
                 else:
                     day["isFree"] = True
+                    day["type"] = "Free"
                     contador_dias_trabajo = 0
                     contador_dias_descanso += 1
                     salida_dia_anterior = None
@@ -160,6 +163,8 @@ class FileAnalyzer:
         salida = None
         entrada = None
 
+        celda_referencia = hoja_trabajo.cell(row=inicio, column=3)
+        es_feriado = celda_referencia.fill.start_color.index == "FFD0CECE"
         # Iterar sobre las filas desde la fila 4 hasta la 6 y las columnas desde la C hasta la S
         for columna in range(3, 20):
             for fila in range(inicio, fin):  # Columnas de la C a la S
@@ -174,7 +179,14 @@ class FileAnalyzer:
                         horas_nocturnas += 0.25
                     if entrada is None:
                         entrada = {"fila": fila, "columna": columna}
-        return horas_trabajo, horas_nocturnas, horas_descanso, entrada, salida
+        return (
+            horas_trabajo,
+            horas_nocturnas,
+            horas_descanso,
+            entrada,
+            salida,
+            es_feriado,
+        )
 
     def obj_to_time(self, hour, minutes):
         return datetime.combine(date.today(), time(hour=hour, minute=0)) + timedelta(
