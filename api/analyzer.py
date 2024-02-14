@@ -37,7 +37,10 @@ class FileAnalyzer:
         contador_dias_trabajo = 0
 
         for index in range(cantidad_hojas):
-            week_number = int(nombres_hojas[index].split()[1])
+            # Seleccionar la hoja de trabajo
+            hoja_trabajo = libro_trabajo.worksheets[index]
+            week_name = self.get_week_name(hoja_trabajo)
+            week_number = int(week_name.split()[1])
             week_dates = self.get_dates_of_week(week_number)
             week = {
                 "id": None,
@@ -50,9 +53,7 @@ class FileAnalyzer:
                 "errors": [],
                 "hasErrors": False,
             }
-            week["name"] = nombres_hojas[index].upper()
-            # Seleccionar la hoja de trabajo
-            hoja_trabajo = libro_trabajo.worksheets[index]
+            week["name"] = week_name.upper()
 
             total_horas_trabajo = 0
             total_horas_nocturnas = 0
@@ -154,6 +155,13 @@ class FileAnalyzer:
                 response["hasErrors"] = True
             response["weeks"].append(week)
         return respuesta, response
+
+    def get_week_name(self, worksheet):
+        try:
+            return worksheet.cell(row=35, column=22).value
+        except Exception as msg:
+            print(f"## ERROR: {str(msg)}")
+            return "SEMANA 0"
 
     def contar_horas_diarias(self, hoja_trabajo, inicio, fin):
         # Inicializar el contador de horas de trabajo
