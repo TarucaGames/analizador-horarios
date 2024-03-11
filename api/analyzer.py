@@ -106,7 +106,7 @@ class FileAnalyzer:
                     )
                     day["start"] = self.to_string(time_entrada)
                     day["end"] = self.to_string(time_salida)
-                    if salida_dia_anterior is not None:
+                    if es_feriado is False and salida_dia_anterior is not None:
                         siguiente_entrada = self.get_proxima_entrada(
                             salida_dia_anterior
                         )
@@ -125,7 +125,7 @@ class FileAnalyzer:
                     day["type"] = "Holiday" if es_feriado else "Working"
                 else:
                     day["isFree"] = True
-                    day["type"] = "Free"
+                    day["type"] = "Holiday" if es_feriado else "Free"
                     contador_dias_trabajo = 0
                     contador_dias_descanso += 1
                     salida_dia_anterior = None
