@@ -4,6 +4,8 @@ from datetime import date, datetime, time, timedelta
 
 
 class FileAnalyzer:
+    colores_feriado = ["FFA6A6A6", "FFD0CECE"]
+
     semana_diccionario = {
         "lunes": {"index": 0, "inicio": 3, "fin": 7},
         "martes": {"index": 1, "inicio": 8, "fin": 12},
@@ -172,7 +174,11 @@ class FileAnalyzer:
         entrada = None
 
         celda_referencia = hoja_trabajo.cell(row=inicio, column=3)
-        es_feriado = celda_referencia.fill.start_color.index == "FFD0CECE"
+        es_feriado = (
+            True
+            if celda_referencia.fill.start_color.index in self.colores_feriado
+            else False
+        )
         # Iterar sobre las filas desde la fila 4 hasta la 6 y las columnas desde la C hasta la S
         for columna in range(3, 20):
             for fila in range(inicio, fin):  # Columnas de la C a la S
